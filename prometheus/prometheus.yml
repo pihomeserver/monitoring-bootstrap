@@ -1,0 +1,44 @@
+global:
+  scrape_interval:     15s
+  external_labels:
+    env: 'infrastructure'
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - localhost:9093
+    scheme: http
+    timeout: 10s
+
+rule_files:
+  - "/alertmanager/alert.rules/alerts.rules.yml"
+
+scrape_configs:
+  - job_name: node-exporter
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 5s
+
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['localhost:8080']
+    scrape_interval: 5s
+
+  # - job_name: 'blackbox'
+  #   metrics_path: /probe
+  #   params:
+  #     module: [http_2xx]  # Look for a HTTP 200 response.
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       #regex: ([^,]*),(.*)                   # <-- ici on fait une regex pour tagger nos urls avec une virgule
+  #       #replacement: $1
+  #       target_label: __param_target
+  #     - source_labels: [__address__]
+  #       target_label: instance
+  #     - target_label: __address__
+  #       replacement: localhost:9115
+
+  #   static_configs:
+  #     - targets:
+  #       - http://localhost:9090,prometheus
