@@ -56,14 +56,15 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     network_mode: "host"
 
-  # blackbox:
-  #   image: prom/blackbox-exporter:latest
-  #   container_name: blackbox_exporter
-  #   deploy:
-  #     replicas: 1
-  #   volumes:
-  #   - ./blackbox:/config
-  #   network_mode: "host"
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox_exporter
+    deploy:
+      replicas: 1
+    volumes:
+      - ./blackbox:/config
+    command: --config.file=/config/blackbox.yml
+    network_mode: "host"
 
   node_exporter:
     image: prom/node-exporter:latest
