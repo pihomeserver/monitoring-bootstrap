@@ -1,7 +1,6 @@
 version: '3'
 
 services:
-
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -15,7 +14,10 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=365d'
-    network_mode: "host"
+    ports:
+      - 9090:9090
+    networks:
+      - monitoring-back
 
   alertmanager:
     image: prom/alertmanager:latest
@@ -27,7 +29,11 @@ services:
       - ./alertmanager/templates/default.tmpl:/etc/alertmanager/templates/default.tmpl
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
-    network_mode: "host"
+    ports:
+      - 9093:9093
+    networks:
+      - monitoring
+      - monitoring-back
 
   grafana:
     image: grafana/grafana:latest
@@ -44,7 +50,11 @@ services:
       - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./grafana/dashboards:/var/lib/grafana/dashboards
-    network_mode: "host"
+    ports:
+      - 3000:3000
+    networks:
+      - monitoring
+      - monitoring-back
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -54,7 +64,10 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    network_mode: "host"
+    ports:
+      - 8080:8080
+    networks:
+      - monitoring-back
 
   blackbox:
     image: prom/blackbox-exporter:latest
@@ -64,14 +77,28 @@ services:
     volumes:
       - ./blackbox:/config
     command: --config.file=/config/blackbox.yml
-    network_mode: "host"
+    ports:
+      - 9115:9115
+    networks:
+      - monitoring
+      - monitoring-back
 
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
     deploy:
       replicas: 1
-    network_mode: "host"
+    ports:
+      - 9100:9100
+    restart: always
+    networks:
+      - monitoring-back
+
+networks:
+  monitoring:
+    driver: bridge
+  monitoring-back:
+    internal: true
 
 volumes:
   prometheus-data:
